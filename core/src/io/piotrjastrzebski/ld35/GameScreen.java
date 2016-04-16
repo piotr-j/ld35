@@ -23,6 +23,7 @@ import io.piotrjastrzebski.jam.ecs.processors.physics.Physics;
 import io.piotrjastrzebski.jam.ecs.processors.rendering.*;
 import io.piotrjastrzebski.ld35.generic.MapProcessor;
 import io.piotrjastrzebski.ld35.generic.Player;
+import io.piotrjastrzebski.ld35.generic.PlayerUpdater;
 import io.piotrjastrzebski.ld35.input.PlayerController;
 import io.piotrjastrzebski.ld35.physics.TransformUpdate;
 
@@ -55,6 +56,7 @@ public class GameScreen extends ScreenAdapter {
 		config.register(GlobalSettings.WIRE_GUI_CAM, guiViewport.getCamera());
 		config.register(game.map);
 
+		config.setSystem(PlayerUpdater.class);
 		config.setSystem(CursorProcessor.class);
 		config.setSystem(PlayerController.class);
 		config.setSystem(Physics.class);
@@ -70,36 +72,6 @@ public class GameScreen extends ScreenAdapter {
 
 		world = new World(config);
 		Gdx.input.setInputProcessor(ArtemisUtils.registerInput(world));
-
-		EntityEdit edit = world.createEntity().edit();
-		Transform tm = edit.create(Transform.class);
-		tm.size(.8f, .8f);
-		tm.xy(32 -.5f, 32 -.5f);
-		Player player = edit.create(Player.class);
-		player.state = Player.State.DPS;
-		player.id = 0;
-		player.speed = 128;
-		player.dashDelay = 0;
-		player.dashChainMargin = .25f;
-		edit.create(CameraFollow.class);
-//		edit.create(DebugShape.class).addCircle(ShapeRenderer.ShapeType.Filled, 1f).color(Color.GREEN).segments(16).centre(true);
-
-		// TODO api this is crap
-		BodyDef bd = edit.create(BodyDef.class);
-		bd.def.type = com.badlogic.gdx.physics.box2d.BodyDef.BodyType.DynamicBody;
-		bd.def.linearDamping = 16;
-		bd.def.fixedRotation = true;
-		FixtureDef fd = new FixtureDef();
-		CircleShape cs = new CircleShape();
-		cs.setRadius(.4f);
-		fd.shape = cs;
-		fd.density = 0;
-		fd.restitution = 0;
-		fd.friction = .2f;
-		bd.fixtureDefs.add(fd);
-
-		player.dashStopSpeed = ((player.speed * player.speed) / (bd.def.linearDamping * bd.def.linearDamping)) * 1.25f;
-
 	}
 
 	@Override public void render (float delta) {
