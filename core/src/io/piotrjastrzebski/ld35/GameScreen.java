@@ -4,7 +4,6 @@ import com.artemis.EntityEdit;
 import com.artemis.World;
 import com.artemis.WorldConfiguration;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -18,7 +17,6 @@ import io.piotrjastrzebski.jam.ecs.GlobalSettings;
 import io.piotrjastrzebski.jam.ecs.components.Transform;
 import io.piotrjastrzebski.jam.ecs.components.gameplay.CameraFollow;
 import io.piotrjastrzebski.jam.ecs.components.physics.BodyDef;
-import io.piotrjastrzebski.jam.ecs.components.rendering.DebugShape;
 import io.piotrjastrzebski.jam.ecs.processors.gameplay.CameraFollower;
 import io.piotrjastrzebski.jam.ecs.processors.gameplay.CursorProcessor;
 import io.piotrjastrzebski.jam.ecs.processors.physics.Physics;
@@ -71,8 +69,11 @@ public class GameScreen extends ScreenAdapter {
 		tm.size(1, 1);
 		tm.xy(-.5f, -.5f);
 		Player player = edit.create(Player.class);
+		player.state = Player.State.DPS;
 		player.id = 0;
 		player.speed = 128;
+		player.dashDelay = 2;
+		player.dashChainMargin = .25f;
 		edit.create(CameraFollow.class);
 //		edit.create(DebugShape.class).addCircle(ShapeRenderer.ShapeType.Filled, 1f).color(Color.GREEN).segments(16).centre(true);
 
@@ -89,6 +90,8 @@ public class GameScreen extends ScreenAdapter {
 		fd.restitution = 0;
 		fd.friction = .2f;
 		bd.fixtureDefs.add(fd);
+
+		player.dashStopSpeed = ((player.speed * player.speed) / (bd.def.linearDamping * bd.def.linearDamping)) * 1.25f;
 
 	}
 
