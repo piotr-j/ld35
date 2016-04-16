@@ -30,7 +30,7 @@ allprojects {
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven { url "https://oss.sonatype.org/content/repositories/releases/" }
-        maven { url "https://jitpack.io" }
+//        maven { url "https://jitpack.io" }
     }
 }
 
@@ -114,7 +114,8 @@ project(":core") {
         compile "net.onedaybeard.artemis:artemis-odb:$artemisOdbVersion"
 //        compile "net.onedaybeard.artemis:artemis-odb-serializer-kryo:1.5.0-SNAPSHOT"
 
-        compile 'com.github.piotr-j:tastyjam:-SNAPSHOT'
+//        compile 'com.github.piotr-j:tastyjam:-SNAPSHOT'
+        compile 'com.github.piotr-j:jam:1.1'
     }
 }
 
