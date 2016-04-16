@@ -9,6 +9,7 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
@@ -24,6 +25,7 @@ import io.piotrjastrzebski.jam.ecs.processors.physics.Physics;
 import io.piotrjastrzebski.jam.ecs.processors.rendering.*;
 import io.piotrjastrzebski.ld35.generic.Player;
 import io.piotrjastrzebski.ld35.input.PlayerController;
+import io.piotrjastrzebski.ld35.physics.TransformUpdate;
 
 /**
  * Created by PiotrJ on 16/04/16.
@@ -49,12 +51,13 @@ public class GameScreen extends ScreenAdapter {
 		config.register(GlobalSettings.WIRE_GUI_VP, guiViewport);
 		config.register(GlobalSettings.WIRE_GUI_CAM, guiViewport.getCamera());
 
-		config.setSystem(Physics.class);
 		config.setSystem(CursorProcessor.class);
 		config.setSystem(PlayerController.class);
+		config.setSystem(Physics.class);
+		config.setSystem(TransformUpdate.class);
 		config.setSystem(CameraFollower.class);
 		config.setSystem(ViewBounds.class);
-		config.setSystem(new DebugGridRenderer2(1, 1, 1, 1, .25f));
+		config.setSystem(new DebugGridRenderer(1, 1, 1, 1, .25f));
 
 		config.setSystem(DebugBox2dRenderer.class);
 		config.setSystem(DebugShapeRenderer.class);
@@ -66,12 +69,26 @@ public class GameScreen extends ScreenAdapter {
 		EntityEdit edit = world.createEntity().edit();
 		Transform tm = edit.create(Transform.class);
 		tm.size(1, 1);
-		tm.xy(0, 0);
+		tm.xy(-.5f, -.5f);
 		Player player = edit.create(Player.class);
 		player.id = 0;
-		player.speed = 10;
+		player.speed = 128;
 		edit.create(CameraFollow.class);
-		edit.create(DebugShape.class).addCircle(ShapeRenderer.ShapeType.Filled, 1f).color(Color.GREEN).segments(16).centre(true);
+//		edit.create(DebugShape.class).addCircle(ShapeRenderer.ShapeType.Filled, 1f).color(Color.GREEN).segments(16).centre(true);
+
+		// TODO this is crap
+		BodyDef bd = edit.create(BodyDef.class);
+		bd.def.type = com.badlogic.gdx.physics.box2d.BodyDef.BodyType.DynamicBody;
+		bd.def.linearDamping = 16;
+		bd.def.fixedRotation = true;
+		FixtureDef fd = new FixtureDef();
+		CircleShape cs = new CircleShape();
+		cs.setRadius(.5f);
+		fd.shape = cs;
+		fd.density = 0;
+		fd.restitution = 0;
+		fd.friction = .2f;
+		bd.fixtureDefs.add(fd);
 
 	}
 
