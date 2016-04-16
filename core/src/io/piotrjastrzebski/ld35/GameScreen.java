@@ -21,6 +21,7 @@ import io.piotrjastrzebski.jam.ecs.processors.gameplay.CameraFollower;
 import io.piotrjastrzebski.jam.ecs.processors.gameplay.CursorProcessor;
 import io.piotrjastrzebski.jam.ecs.processors.physics.Physics;
 import io.piotrjastrzebski.jam.ecs.processors.rendering.*;
+import io.piotrjastrzebski.ld35.generic.MapProcessor;
 import io.piotrjastrzebski.ld35.generic.Player;
 import io.piotrjastrzebski.ld35.input.PlayerController;
 import io.piotrjastrzebski.ld35.physics.TransformUpdate;
@@ -29,6 +30,10 @@ import io.piotrjastrzebski.ld35.physics.TransformUpdate;
  * Created by PiotrJ on 16/04/16.
  */
 public class GameScreen extends ScreenAdapter {
+	public static final int CAT_PLAYER = 1 << 2;
+	public static final int CAT_ENEMY = 1 << 3;
+	public static final int CAT_WALL = 1 << 4;
+	public static final int CAT_HOLE = 1 << 5;
 	private final World world;
 	private final ExtendViewport gameViewport;
 	private final ScreenViewport guiViewport;
@@ -48,6 +53,7 @@ public class GameScreen extends ScreenAdapter {
 		config.register(GlobalSettings.WIRE_GAME_CAM, gameViewport.getCamera());
 		config.register(GlobalSettings.WIRE_GUI_VP, guiViewport);
 		config.register(GlobalSettings.WIRE_GUI_CAM, guiViewport.getCamera());
+		config.register(game.map);
 
 		config.setSystem(CursorProcessor.class);
 		config.setSystem(PlayerController.class);
@@ -55,6 +61,7 @@ public class GameScreen extends ScreenAdapter {
 		config.setSystem(TransformUpdate.class);
 		config.setSystem(CameraFollower.class);
 		config.setSystem(ViewBounds.class);
+		config.setSystem(MapProcessor.class);
 		config.setSystem(new DebugGridRenderer(1, 1, 1, 1, .25f));
 
 		config.setSystem(DebugBox2dRenderer.class);
@@ -66,25 +73,25 @@ public class GameScreen extends ScreenAdapter {
 
 		EntityEdit edit = world.createEntity().edit();
 		Transform tm = edit.create(Transform.class);
-		tm.size(1, 1);
-		tm.xy(-.5f, -.5f);
+		tm.size(.8f, .8f);
+		tm.xy(32 -.5f, 32 -.5f);
 		Player player = edit.create(Player.class);
 		player.state = Player.State.DPS;
 		player.id = 0;
 		player.speed = 128;
-		player.dashDelay = 2;
+		player.dashDelay = 0;
 		player.dashChainMargin = .25f;
 		edit.create(CameraFollow.class);
 //		edit.create(DebugShape.class).addCircle(ShapeRenderer.ShapeType.Filled, 1f).color(Color.GREEN).segments(16).centre(true);
 
-		// TODO this is crap
+		// TODO api this is crap
 		BodyDef bd = edit.create(BodyDef.class);
 		bd.def.type = com.badlogic.gdx.physics.box2d.BodyDef.BodyType.DynamicBody;
 		bd.def.linearDamping = 16;
 		bd.def.fixedRotation = true;
 		FixtureDef fd = new FixtureDef();
 		CircleShape cs = new CircleShape();
-		cs.setRadius(.5f);
+		cs.setRadius(.4f);
 		fd.shape = cs;
 		fd.density = 0;
 		fd.restitution = 0;

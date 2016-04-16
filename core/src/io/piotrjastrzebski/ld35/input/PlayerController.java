@@ -8,9 +8,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.Filter;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import io.piotrjastrzebski.jam.ecs.components.Transform;
 import io.piotrjastrzebski.jam.ecs.components.physics.DynamicBody;
 import io.piotrjastrzebski.jam.ecs.processors.gameplay.CursorProcessor;
+import io.piotrjastrzebski.ld35.GameScreen;
 import io.piotrjastrzebski.ld35.generic.Player;
 
 /**
@@ -21,11 +24,22 @@ public class PlayerController extends IteratingSystem {
 	protected ComponentMapper<Transform> mTransform;
 	protected ComponentMapper<Player> mPlayer;
 	protected ComponentMapper<DynamicBody> mDynamicBody;
+	public static final int CAT_ALL = GameScreen.CAT_PLAYER | GameScreen.CAT_ENEMY | GameScreen.CAT_WALL | GameScreen.CAT_HOLE;
+	public static final int CAT_NO_HOLE = GameScreen.CAT_PLAYER | GameScreen.CAT_ENEMY | GameScreen.CAT_WALL;
 
 	@Wire CursorProcessor cp;
 
 	public PlayerController () {
 		super(Aspect.all(Player.class, Transform.class, DynamicBody.class));
+	}
+
+	@Override protected void inserted (int entityId) {
+		Body body = mDynamicBody.get(entityId).body;
+		Fixture fixture = body.getFixtureList().get(0);
+		Filter filter = fixture.getFilterData();
+		filter.categoryBits = GameScreen.CAT_PLAYER;
+		filter.maskBits = CAT_ALL;
+		fixture.setFilterData(filter);
 	}
 
 	private Vector2 dir = new Vector2();
@@ -55,6 +69,10 @@ public class PlayerController extends IteratingSystem {
 		if (player.dashing) {
 			if (velMag2 <= player.dashStopSpeed) {
 				player.dashing = false;
+				Fixture fixture = body.getFixtureList().get(0);
+				Filter filter = fixture.getFilterData();
+				filter.maskBits = CAT_ALL;
+				fixture.setFilterData(filter);
 			}
 		} else {
 			if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) {
@@ -81,6 +99,10 @@ public class PlayerController extends IteratingSystem {
 					move.add(dir);
 					player.dashTimer = player.dashDelay;
 					player.dashing = true;
+					Fixture fixture = body.getFixtureList().get(0);
+					Filter filter = fixture.getFilterData();
+					filter.maskBits = CAT_NO_HOLE;
+					fixture.setFilterData(filter);
 				}
 				break;
 			case TANK:
