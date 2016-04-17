@@ -10,7 +10,8 @@ import com.badlogic.gdx.physics.box2d.*;
 import io.piotrjastrzebski.jam.ecs.components.Transform;
 import io.piotrjastrzebski.jam.ecs.components.gameplay.CameraFollow;
 import io.piotrjastrzebski.jam.ecs.components.physics.BodyDef;
-import io.piotrjastrzebski.jam.ecs.components.physics.DynamicBody;
+import io.piotrjastrzebski.jam.ecs.processors.physics.Physics;
+import io.piotrjastrzebski.ld35.generic.components.Player;
 
 /**
  * Created by EvilEntity on 16/04/2016.
@@ -20,6 +21,7 @@ public class PlayerUpdater extends IteratingSystem {
 	protected ComponentMapper<Transform> mTransform;
 	protected ComponentMapper<Player> mPlayer;
 	@Wire MapProcessor map;
+	@Wire Physics physics;
 
 	public PlayerUpdater () {
 		super(Aspect.all(Player.class, Transform.class));
@@ -63,6 +65,15 @@ public class PlayerUpdater extends IteratingSystem {
 			fd.friction = .2f;
 			bd.fixtureDefs.add(fd);
 
+			fd = new FixtureDef();
+			cs = new CircleShape();
+			cs.setRadius(.9f);
+			fd.shape = cs;
+			fd.density = 0;
+			fd.restitution = 0;
+			fd.friction = .2f;
+			bd.fixtureDefs.add(fd);
+
 			player.dashStopSpeed = ((player.speed * player.speed) / (bd.def.linearDamping * bd.def.linearDamping)) * 1.25f;
 		}
 	}
@@ -84,7 +95,6 @@ public class PlayerUpdater extends IteratingSystem {
 	}
 
 	@Override protected void inserted (int entityId) {
-
 	}
 
 	@Override protected void removed (int entityId) {

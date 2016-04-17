@@ -10,11 +10,12 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Filter;
 import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.utils.Array;
 import io.piotrjastrzebski.jam.ecs.components.Transform;
 import io.piotrjastrzebski.jam.ecs.components.physics.DynamicBody;
 import io.piotrjastrzebski.jam.ecs.processors.gameplay.CursorProcessor;
 import io.piotrjastrzebski.ld35.GameScreen;
-import io.piotrjastrzebski.ld35.generic.Player;
+import io.piotrjastrzebski.ld35.generic.components.Player;
 
 /**
  * Created by EvilEntity on 16/04/2016.
@@ -24,6 +25,7 @@ public class PlayerController extends IteratingSystem {
 	protected ComponentMapper<Transform> mTransform;
 	protected ComponentMapper<Player> mPlayer;
 	protected ComponentMapper<DynamicBody> mDynamicBody;
+	public static final int CAT_NONE = 0;
 	public static final int CAT_ALL = GameScreen.CAT_PLAYER | GameScreen.CAT_ENEMY | GameScreen.CAT_WALL | GameScreen.CAT_HOLE;
 	public static final int CAT_NO_HOLE = GameScreen.CAT_PLAYER | GameScreen.CAT_ENEMY | GameScreen.CAT_WALL;
 
@@ -35,10 +37,20 @@ public class PlayerController extends IteratingSystem {
 
 	@Override protected void inserted (int entityId) {
 		Body body = mDynamicBody.get(entityId).body;
-		Fixture fixture = body.getFixtureList().get(0);
+		setMasks(body, CAT_ALL, CAT_NONE);
+	}
+
+	private void setMasks(Body body, int smallMask, int largeMask) {
+		Array<Fixture> fl = body.getFixtureList();
+		Fixture fixture = fl.get(0);
 		Filter filter = fixture.getFilterData();
 		filter.categoryBits = GameScreen.CAT_PLAYER;
-		filter.maskBits = CAT_ALL;
+		filter.maskBits = (short)smallMask;
+		fixture.setFilterData(filter);
+		fixture = fl.get(1);
+		filter = fixture.getFilterData();
+		filter.categoryBits = GameScreen.CAT_PLAYER;
+		filter.maskBits = (short)largeMask;
 		fixture.setFilterData(filter);
 	}
 
@@ -56,9 +68,11 @@ public class PlayerController extends IteratingSystem {
 			switch (player.state) {
 			case DPS:
 				player.state = Player.State.TANK;
+				setMasks(body, CAT_NONE, CAT_ALL);
 				break;
 			case TANK:
 				player.state = Player.State.DPS;
+				setMasks(body, CAT_ALL, CAT_NONE);
 				break;
 			}
 			Gdx.app.log(TAG, "State="+player.state);
@@ -69,10 +83,7 @@ public class PlayerController extends IteratingSystem {
 		if (player.dashing) {
 			if (velMag2 <= player.dashStopSpeed) {
 				player.dashing = false;
-				Fixture fixture = body.getFixtureList().get(0);
-				Filter filter = fixture.getFilterData();
-				filter.maskBits = CAT_ALL;
-				fixture.setFilterData(filter);
+				setMasks(body, CAT_ALL, CAT_NONE);
 			}
 		} else {
 			if (Gdx.input.isKeyPressed(Input.Keys.W) || Gdx.input.isKeyPressed(Input.Keys.UP)) {
@@ -99,10 +110,7 @@ public class PlayerController extends IteratingSystem {
 					move.add(dir);
 					player.dashTimer = player.dashDelay;
 					player.dashing = true;
-					Fixture fixture = body.getFixtureList().get(0);
-					Filter filter = fixture.getFilterData();
-					filter.maskBits = CAT_NO_HOLE;
-					fixture.setFilterData(filter);
+					setMasks(body, CAT_NO_HOLE, CAT_NONE);
 				}
 				break;
 			case TANK:

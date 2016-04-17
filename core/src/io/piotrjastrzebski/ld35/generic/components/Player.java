@@ -1,4 +1,4 @@
-package io.piotrjastrzebski.ld35.generic;
+package io.piotrjastrzebski.ld35.generic.components;
 
 import com.artemis.PooledComponent;
 
