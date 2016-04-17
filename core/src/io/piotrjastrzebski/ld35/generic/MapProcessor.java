@@ -13,7 +13,6 @@ import com.badlogic.gdx.maps.tiled.renderers.OrthoCachedTiledMapRenderer;
 import com.badlogic.gdx.physics.box2d.*;
 import io.piotrjastrzebski.jam.ecs.GlobalSettings;
 import io.piotrjastrzebski.jam.ecs.processors.physics.Physics;
-import io.piotrjastrzebski.ld35.GameScreen;
 
 import static io.piotrjastrzebski.ld35.GameScreen.*;
 
@@ -77,15 +76,6 @@ public class MapProcessor extends BaseSystem {
 			}
 		}
 
-		// create enemies
-		MapLayer enemies = map.getLayers().get(1);
-		for (MapObject object : enemies.getObjects()) {
-			TiledMapTileMapObject to = (TiledMapTileMapObject)object;
-			float tx = to.getX() * GlobalSettings.INV_SCALE;
-			float ty = to.getY() * GlobalSettings.INV_SCALE;
-			createTile(tx + .5f, ty + .5f, bd, fd, CAT_ENEMY, CAT_WALL | CAT_PLAYER);
-		}
-
 		// create map boundary
 		for (int x = -1; x <= width; x++) {
 			createTile(x + .5f, -.5f, bd, fd, CAT_WALL, CAT_ENEMY | CAT_PLAYER);
@@ -97,10 +87,35 @@ public class MapProcessor extends BaseSystem {
 			createTile(width + .5f, y + .5f, bd, fd, CAT_WALL, CAT_ENEMY | CAT_PLAYER);
 		}
 
+		CircleShape cs = new CircleShape();
+		cs.setRadius(.4f);
+		fd.shape = cs;
+		bd.linearDamping = 16;
+		bd.type = BodyDef.BodyType.DynamicBody;
+		// create enemies
+		MapLayer enemies = map.getLayers().get(1);
+		for (MapObject object : enemies.getObjects()) {
+			TiledMapTileMapObject to = (TiledMapTileMapObject)object;
+			float tx = to.getX() * GlobalSettings.INV_SCALE;
+			float ty = to.getY() * GlobalSettings.INV_SCALE;
+			createEnemy(tx + .5f, ty + .5f, bd, fd, CAT_ENEMY, CAT_WALL | CAT_PLAYER);
+		}
+
 		shape.dispose();
+		cs.dispose();
 	}
 
 	private void createTile (float x, float y, BodyDef bd, FixtureDef fd, short catBits, int mask) {
+		Body body = physics.b2d.createBody(bd);
+		body.setTransform(x, y, 0);
+		Fixture fixture = body.createFixture(fd);
+		Filter filter = fixture.getFilterData();
+		filter.categoryBits = catBits;
+		filter.maskBits = (short)mask;
+		fixture.setFilterData(filter);
+	}
+
+	private void createEnemy (float x, float y, BodyDef bd, FixtureDef fd, short catBits, int mask) {
 		Body body = physics.b2d.createBody(bd);
 		body.setTransform(x, y, 0);
 		Fixture fixture = body.createFixture(fd);

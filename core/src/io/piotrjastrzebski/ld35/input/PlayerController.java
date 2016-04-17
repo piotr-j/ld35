@@ -25,6 +25,7 @@ public class PlayerController extends IteratingSystem {
 	protected ComponentMapper<Transform> mTransform;
 	protected ComponentMapper<Player> mPlayer;
 	protected ComponentMapper<DynamicBody> mDynamicBody;
+
 	public static final int CAT_NONE = 0;
 	public static final int CAT_ALL = GameScreen.CAT_PLAYER | GameScreen.CAT_ENEMY | GameScreen.CAT_WALL | GameScreen.CAT_HOLE;
 	public static final int CAT_NO_HOLE = GameScreen.CAT_PLAYER | GameScreen.CAT_ENEMY | GameScreen.CAT_WALL;
@@ -116,11 +117,22 @@ public class PlayerController extends IteratingSystem {
 			case TANK:
 				// we need to know if we are dashing
 				if (player.dashTimer <= 0 || player.dashTimer >= player.dashDelay - player.dashChainMargin) {
-					dir.set(cp.x, cp.y).sub(bp).nor().scl(-80);
+					dir.set(cp.x, cp.y).sub(bp).nor().scl(80);
 					move.add(dir);
 					player.dashTimer = player.dashDelay;
 				}
 				break;
+			}
+		}
+
+		if (Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+			switch (player.state) {
+			case DPS: {
+
+			}break;
+			case TANK: {
+
+			}break;
 			}
 		}
 
