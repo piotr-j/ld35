@@ -1,6 +1,5 @@
 package io.piotrjastrzebski.ld35;
 
-import com.artemis.EntityEdit;
 import com.artemis.World;
 import com.artemis.WorldConfiguration;
 import com.badlogic.gdx.Gdx;
@@ -8,21 +7,15 @@ import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.physics.box2d.CircleShape;
-import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import io.piotrjastrzebski.jam.ecs.ArtemisUtils;
 import io.piotrjastrzebski.jam.ecs.GlobalSettings;
-import io.piotrjastrzebski.jam.ecs.components.Transform;
-import io.piotrjastrzebski.jam.ecs.components.gameplay.CameraFollow;
-import io.piotrjastrzebski.jam.ecs.components.physics.BodyDef;
 import io.piotrjastrzebski.jam.ecs.processors.gameplay.CameraFollower;
 import io.piotrjastrzebski.jam.ecs.processors.gameplay.CursorProcessor;
 import io.piotrjastrzebski.jam.ecs.processors.physics.Physics;
 import io.piotrjastrzebski.jam.ecs.processors.rendering.*;
 import io.piotrjastrzebski.ld35.generic.MapProcessor;
-import io.piotrjastrzebski.ld35.generic.Player;
 import io.piotrjastrzebski.ld35.generic.PlayerUpdater;
 import io.piotrjastrzebski.ld35.input.PlayerController;
 import io.piotrjastrzebski.ld35.physics.TransformUpdate;
@@ -31,10 +24,10 @@ import io.piotrjastrzebski.ld35.physics.TransformUpdate;
  * Created by PiotrJ on 16/04/16.
  */
 public class GameScreen extends ScreenAdapter {
-	public static final int CAT_PLAYER = 1 << 2;
-	public static final int CAT_ENEMY = 1 << 3;
-	public static final int CAT_WALL = 1 << 4;
-	public static final int CAT_HOLE = 1 << 5;
+	public static final short CAT_PLAYER = 1 << 2;
+	public static final short CAT_ENEMY = 1 << 3;
+	public static final short CAT_WALL = 1 << 4;
+	public static final short CAT_HOLE = 1 << 5;
 	private final World world;
 	private final ExtendViewport gameViewport;
 	private final ScreenViewport guiViewport;

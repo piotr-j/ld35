@@ -2,19 +2,20 @@ package io.piotrjastrzebski.ld35.generic;
 
 import com.artemis.BaseSystem;
 import com.artemis.annotations.Wire;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.maps.MapLayer;
+import com.badlogic.gdx.maps.MapObject;
 import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TiledMapTile;
 import com.badlogic.gdx.maps.tiled.TiledMapTileLayer;
+import com.badlogic.gdx.maps.tiled.objects.TiledMapTileMapObject;
 import com.badlogic.gdx.maps.tiled.renderers.OrthoCachedTiledMapRenderer;
 import com.badlogic.gdx.physics.box2d.*;
 import io.piotrjastrzebski.jam.ecs.GlobalSettings;
 import io.piotrjastrzebski.jam.ecs.processors.physics.Physics;
 import io.piotrjastrzebski.ld35.GameScreen;
+
+import static io.piotrjastrzebski.ld35.GameScreen.*;
 
 /**
  * Created by EvilEntity on 17/04/2016.
@@ -59,76 +60,54 @@ public class MapProcessor extends BaseSystem {
 				case 1: // water deep
 				case 2: // water shallow
 				{
-					Body body = physics.b2d.createBody(bd);
-					body.setTransform(x + .5f, y + .5f, 0);
-					Fixture fixture = body.createFixture(fd);
-					Filter filter = fixture.getFilterData();
-					filter.categoryBits = GameScreen.CAT_HOLE;
-					filter.maskBits = GameScreen.CAT_ENEMY | GameScreen.CAT_PLAYER;
-					fixture.setFilterData(filter);
+					createTile(x + .5f, y + .5f, bd, fd, CAT_HOLE, CAT_ENEMY | CAT_PLAYER);
 					blocked[x + y * width] = true;
 				}break;
 				case 6: // mountain
 				{
-					Body body = physics.b2d.createBody(bd);
-					body.setTransform(x + .5f, y + .5f, 0);
-					Fixture fixture = body.createFixture(fd);
-					Filter filter = fixture.getFilterData();
-					filter.categoryBits = GameScreen.CAT_WALL;
-					filter.maskBits = GameScreen.CAT_ENEMY | GameScreen.CAT_PLAYER;
-					fixture.setFilterData(filter);
+					createTile(x + .5f, y + .5f, bd, fd, CAT_WALL, CAT_ENEMY | CAT_PLAYER);
 					blocked[x + y * width] = true;
 				}break;
 				case 7: // lava
 				{
-					Body body = physics.b2d.createBody(bd);
-					body.setTransform(x + .5f, y + .5f, 0);
-					Fixture fixture = body.createFixture(fd);
-					Filter filter = fixture.getFilterData();
-					filter.categoryBits = GameScreen.CAT_HOLE;
-					filter.maskBits = GameScreen.CAT_ENEMY | GameScreen.CAT_PLAYER;
-					fixture.setFilterData(filter);
+					createTile(x + .5f, y + .5f, bd, fd, CAT_HOLE, CAT_ENEMY | CAT_PLAYER);
 					blocked[x + y * width] = true;
 				}break;
 				}
 			}
 		}
 
-		for (int x = -1; x <= width; x++) {
-			Body body = physics.b2d.createBody(bd);
-			body.setTransform(x + .5f, -.5f, 0);
-			Fixture fixture = body.createFixture(fd);
-			Filter filter = fixture.getFilterData();
-			filter.categoryBits = GameScreen.CAT_WALL;
-			filter.maskBits = GameScreen.CAT_ENEMY | GameScreen.CAT_PLAYER;
-			fixture.setFilterData(filter);
+		// create enemies
+		MapLayer enemies = map.getLayers().get(1);
+		for (MapObject object : enemies.getObjects()) {
+			TiledMapTileMapObject to = (TiledMapTileMapObject)object;
+			float tx = to.getX() * GlobalSettings.INV_SCALE;
+			float ty = to.getY() * GlobalSettings.INV_SCALE;
+			createTile(tx + .5f, ty + .5f, bd, fd, CAT_ENEMY, CAT_WALL | CAT_PLAYER);
+		}
 
-			body = physics.b2d.createBody(bd);
-			body.setTransform(x + .5f, height + .5f, 0);
-			fixture = body.createFixture(fd);
-			filter = fixture.getFilterData();
-			filter.categoryBits = GameScreen.CAT_WALL;
-			filter.maskBits = GameScreen.CAT_ENEMY | GameScreen.CAT_PLAYER;
-			fixture.setFilterData(filter);
+		// create map boundary
+		for (int x = -1; x <= width; x++) {
+			createTile(x + .5f, -.5f, bd, fd, CAT_WALL, CAT_ENEMY | CAT_PLAYER);
+			createTile(x + .5f, height + .5f, bd, fd, CAT_WALL, CAT_ENEMY | CAT_PLAYER);
 		}
 
 		for (int y = -1; y <= height; y++) {
-			Body body = physics.b2d.createBody(bd);
-			body.setTransform(-.5f, y + .5f, 0);
-			Fixture fixture = body.createFixture(fd);
-			Filter filter = fixture.getFilterData();
-			filter.categoryBits = GameScreen.CAT_WALL;
-			filter.maskBits = GameScreen.CAT_ENEMY | GameScreen.CAT_PLAYER;
-			fixture.setFilterData(filter);
-
-			body = physics.b2d.createBody(bd);
-			body.setTransform(width + .5f, y + .5f, 0);
-			fixture = body.createFixture(fd);
-			filter = fixture.getFilterData();
-			filter.categoryBits = GameScreen.CAT_WALL;
-			filter.maskBits = GameScreen.CAT_ENEMY | GameScreen.CAT_PLAYER;
-			fixture.setFilterData(filter);
+			createTile(-.5f, y + .5f, bd, fd, CAT_WALL, CAT_ENEMY | CAT_PLAYER);
+			createTile(width + .5f, y + .5f, bd, fd, CAT_WALL, CAT_ENEMY | CAT_PLAYER);
 		}
+
+		shape.dispose();
+	}
+
+	private void createTile (float x, float y, BodyDef bd, FixtureDef fd, short catBits, int mask) {
+		Body body = physics.b2d.createBody(bd);
+		body.setTransform(x, y, 0);
+		Fixture fixture = body.createFixture(fd);
+		Filter filter = fixture.getFilterData();
+		filter.categoryBits = catBits;
+		filter.maskBits = (short)mask;
+		fixture.setFilterData(filter);
 	}
 
 	public boolean isBlocked (int x, int y) {
